@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block navbar_items %}
+<ul class="nav navbar-nav">
+    <li><a href="{{url_for('general.index')}}">Example</a></li>
+    <li class="active"><a href="#">API</a></li>
+</ul>
+{% endblock %}
+
+{% block pagecontent %}
+<div class="row">
+    <h3>This is the API endpoint.</h3>
+
+    <p>Each gtfs entity has its own endpoint.
+    The data will be loaded through the <a href="http://flask-restless.readthedocs.org/en/latest/" target="_blank">flask-restless API</a> and serialized via <a href="http://flask-marshmallow.readthedocs.org/en/latest/" target="_blank">marshmallow</a>
+    </p>
+    <p>
+    The following API endpoints are available:
+    </p>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Entity</th>
+                <th>URL</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Agency</td>
+                <td><a href="/api/agency" target="_blank">/api/agency</a></td>
+                <td>Parsed feed data from agencies.txt</td>
+            </tr>
+            <tr>
+                <td>Stop</td>
+                <td><a href="/api/stop" target="_blank">/api/stop</a></td>
+                <td>Parsed feed data from stops.txt</td>
+            </tr>
+            <tr>
+                <td>Route</td>
+                <td><a href="/api/route" target="_blank">/api/route</a></td>
+                <td>Parsed feed data from routes.txt</td>
+            </tr>
+            <tr>
+                <td>Trip</td>
+                <td><a href="/api/trip" target="_blank">/api/trip</a></td>
+                <td>Parsed feed data from trips.txt</td>
+            </tr>
+            <tr>
+                <td>Stop Time</td>
+                <td><a href="/api/stop_time" target="_blank">/api/stop_time</a></td>
+                <td>Parsed feed data from stop_times.txt</td>
+            </tr>
+            <tr>
+                <td>Service</td>
+                <td><a href="/api/service" target="_blank">/api/service</a></td>
+                <td>Parsed feed data from calendar.txt</td>
+            </tr>
+            <tr>
+                <td>Service Date</td>
+                <td><a href="/api/service_date" target="_blank">/api/service_date</a></td>
+                <td>Parsed feed data from calendar_dates.txt</td>
+            </tr>
+            <tr>
+                <td>Fare Attribute</td>
+                <td><a href="/api/fare_attribute" target="_blank">/api/fare_attribute</a></td>
+                <td>Parsed feed data from fare_attributes.txt</td>
+            </tr>
+            <tr>
+                <td>Fare Rule</td>
+                <td><a href="/api/fare_rule" target="_blank">/api/fare_rule</a></td>
+                <td>Parsed feed data from fare_rules.txt</td>
+            </tr>
+            <tr>
+                <td>ShapePoint</td>
+                <td><a href="/api/shape_point" target="_blank">/api/shape_point</a></td>
+                <td>Parsed feed data from shapes.txt</td>
+            </tr>
+            <tr>
+                <td>Shape</td>
+                <td><a href="/api/shape" target="_blank">/api/shape</a></td>
+                <td>Merged data from <i>ShapePoint table</i> to represent a <i>LineString</i></td>
+            </tr>
+            <tr>
+                <td>Frequency</td>
+                <td><a href="/api/frequency" target="_blank">/api/frequency</a></td>
+                <td>Parsed feed data from frequencies.txt</td>
+            </tr>
+            <tr>
+                <td>Transfer</td>
+                <td><a href="/api/transfer" target="_blank">/api/transfer</a></td>
+                <td>Parsed feed data from transfers.txt</td>
+            </tr>
+            <tr>
+                <td>Feed Info</td>
+                <td><a href="/api/feed_info" target="_blank">/api/feed_info</a></td>
+                <td>Parsed feed data from feed_info.txt</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h4>Relationships</h4>
+    <p>Some endpoints show have their relationships to other objects modeled
+    directly (e.g. FareRule.fare_attribute -> FareAttribute). Others only have an attribute to show the relation (e.g. Route.agency_id -> Agency)</p>
+    <p>
+    This restriction was made due to performance issues while requesting nested/related objects.
+    </p>
+</div>
+
+
+
+<div class="row">
+    <h4>Requests</h4>
+    By default, all listed entities can be requested via:
+    <pre>GET /api/&lt;entity_name&gt;</pre>
+    This will load all data for the given model.
+    To request a specific entity, add the ID to the request url:
+    <pre>GET /api/&lt;entity_name&gt;/&lt;int:ID&gt;</pre>
+
+    <h4>Queries</h4>
+    To get all instances of a model that meet some criteria, clients can make <i>GET</i> requests with a query parameter specifying a search.
+    <br>
+    Using jQuery:
+    <pre>
+    var filters = [{"name": "id", "op": "equals", "val": 1}];
+    $.ajax({
+      url: 'http://127.0.0.1:5000/api/agency',
+      data: {"q": JSON.stringify({"filters": filters})},
+      dataType: "json",
+      contentType: "application/json",
+      success: function(data) { console.log(data.objects); }
+    });</pre>
+    Using curl:
+    <pre>
+    curl \
+    -G \
+    -H "Content-type: application/json" \
+    -d "q={\"filters\":[{\"name\":\"name\",\"op\":\"like\",\"val\":1}]}" \
+    http://127.0.0.1:5000/api/agency</pre>
+
+
+    <h4>Responses</h4>
+    Responses to GET requests are paginated by default.
+    To request a specific page, add a page=N query parameter to the request URL, where N is a positive integer (the first page is page one). If no page query parameter is specified, the first page will be returned.
+    <pre>GET /api/&lt;entity_name&gt;?page=&lt;int:N&gt;</pre>
+
+    In addition to the "objects" list, the response JSON object will have a "page" key whose value is the current page, a "num_pages" key whose value is the total number of pages into which the set of matching instances is divided, and a "num_results" key whose value is the total number of instances which match the requested search.
+
+</div>
+{% endblock %}

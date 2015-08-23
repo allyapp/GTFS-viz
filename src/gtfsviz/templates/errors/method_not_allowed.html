@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block navbar_items %}
+<ul class="nav navbar-nav">
+    <li><a href="{{url_for('general.index')}}">Example</a></li>
+    <li><a href="{{url_for('general.api_overview')}}">API</a></li>
+</ul>
+{% endblock %}
+
+{% block pagecontent %}
+    Sorry, method not allowed.
+{% endblock %}
