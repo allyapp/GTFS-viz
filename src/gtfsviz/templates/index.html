@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+
+{% block navbar_items %}
+<ul class="nav navbar-nav">
+    <li class="active"><a href="#">Example</a></li>
+    <li><a href="{{url_for('general.api_overview')}}">API</a></li>
+</ul>
+{% endblock %}
+
+{% block pagecontent %}
+<div class="row">
+    <h3>Description</h3>
+    <p style="font-size:1.2em;">
+        This example can load several GTFS entities and display them on a map.
+        <br>You can choose between four different categories/groups.
+        The data for each group will be listed in the corresponding table.
+        The tables are hidden in each panel and will be shown, if you click on
+        the panel header.
+    <p>
+    <h3>Map Features</h3>
+    <p style="font-size:1.2em;">Furthermore each feature will be added to the corresponding layer group.
+       There is one additonal layer for selected features.
+       If you click on a table row, the feature will be copied to this layer.
+       It serve the purpose to just view one feature at a time, if you disable
+       all other layers.
+       <br>
+       Each feature is also clickable and opens a popup on the map.
+    <p>
+
+    <h3>Filtering</h3>
+    <p style="font-size:1.2em;">In additon to loading all features for one group,
+       you can limit the results by filtering.
+       Click on the filter checkbox to enable the filter, select the attribute
+       and enter a value.
+       The result will only contain features, which match the given attribute
+       and value.
+    <p>
+
+    <h3>Notes</h3>
+    <p style="font-size:1.2em;">If you load the <i>Stops</i> after loading the <i>Agencies</i>, each stop entity will be drawn in the same color as the corresponding agency.
+    </p>
+    <p style="font-size:1.2em;">If you load the <i>Trips</i> after loading the <i>Routes</i>, each trip entity will be drawn in the same color as the corresponding route.
+    </p>
+    <p style="font-size:1.2em;">Filtering Stops is usually a good thing to do, since there are so many of them. Try to load them per Agency, e.g. set the attribute to <i>Agency ID</i> and the value to <i>STE</i>
+    </p>
+</div>
+
+<div class="row">
+    <div id="map"></div>
+</div>
+
+<div class="row" style="margin-top: 20px;">
+    <div class="progress" id="data-loader" style="display:none;">
+        <div class="progress-bar progress-bar-striped active" role="progressbar" style="width: 100%;">
+            <span>Loading...</span>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="panel-group" id="accordion">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#panel1">
+                    <h3 class="panel-title">Agencies</h3>
+                </a>
+            </div>
+            <div id="panel1" class="panel-collapse collapse">
+                <table id="agency-data" class="table table-striped table-hover">
+                    <thead>
+                      <tr>
+                        <th>Query ID</th>
+                        <th>Agency ID</th>
+                        <th>Name</th>
+                        <th>URL</th>
+                        <th>Timezone</th>
+                        <th>Language</th>
+                        <th>Phone</th>
+                        <th>Fare Url</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <div class="panel-footer">
+                <form class="form-inline">
+                    <div class="form-group">
+                        <label for="filterAgency">Filter</label>
+                        <input type="checkbox" class="form-control" id="filterAgency">
+                    </div>
+                    <div class="form-group">
+                        <label for="filterAgencyAttribute">by attribute</label>
+                        <select id="filterAgencyAttribute" class="form-control" disabled>
+                            <option value="id">Query ID</option>
+                            <option value="agency_id">Agency ID</option>
+                            <option value="agency_name">Name</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filterAgencyValue">value</label>
+                        <input type="text" class="form-control" id="filterAgencyValue" disabled>
+                    </div>
+                    <button id="load-agencies" type="submit" class="btn btn-success">Load Agencies</button>
+
+                </form>
+            </div>
+        </div>
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#panel2">
+                    <h3 class="panel-title">Routes</h3>
+                </a>
+            </div>
+            <div id="panel2" class="panel-collapse collapse">
+                <table id="route-data" class="table table-striped table-hover">
+                    <thead>
+                      <tr>
+                        <th>Query ID</th>
+                        <th>Route ID</th>
+                        <th>Agency ID</th>
+                        <th>Short Name</th>
+                        <th>Long Name</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>URL</th>
+                        <th>Color</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <div class="panel-footer">
+                <form class="form-inline">
+                    <div class="form-group">
+                        <label for="filterRoute">Filter</label>
+                        <input type="checkbox" class="form-control" id="filterRoute">
+                    </div>
+                    <div class="form-group">
+                        <label for="filterRouteAttribute">by attribute</label>
+                        <select id="filterRouteAttribute" class="form-control" disabled>
+                            <option value="id">Query ID</option>
+                            <option value="route_id">Route ID</option>
+                            <option value="agency_id">Agency ID</option>
+                            <option value="route_short_name">Short Name</option>
+                            <option value="route_long_name">Long Name</option>
+                            <option value="route_type">Type</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filterRouteValue">value</label>
+                        <input type="text" class="form-control" id="filterRouteValue" disabled/>
+                    </div>
+                    <button id="load-routes" type="submit" class="btn btn-success">Load Routes</button>
+                </form>
+            </div>
+        </div>
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#panel3">
+                    <h3 class="panel-title">Trips</h3>
+                </a>
+            </div>
+            <div id="panel3" class="panel-collapse collapse">
+                <table id="trip-data" class="table table-striped table-hover">
+                    <thead>
+                      <tr>
+                        <th>Query ID</th>
+                        <th>Trip ID</th>
+                        <th>Agency ID</th>
+                        <th>Route ID</th>
+                        <th>Headsign</th>
+                        <th>Short Name</th>
+                        <th>Service ID</th>
+                        <th>Direction</th>
+                        <th>Block ID</th>
+                        <th>Bikes Allowed</th>
+                        <th>Wheelchair Accessible</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <div class="panel-footer">
+                <form class="form-inline">
+                    <div class="form-group">
+                        <label for="filterTrip">Filter</label>
+                        <input type="checkbox" class="form-control" id="filterTrip">
+                    </div>
+                    <div class="form-group">
+                        <label for="filterTripAttribute">by attribute</label>
+                        <select id="filterTripAttribute" class="form-control" disabled>
+                            <option value="id">Query ID</option>
+                            <option value="trip_id">Trip ID</option>
+                            <option value="route_id">Route ID</option>
+                            <option value="agency_id">Agency ID</option>
+                            <option value="service_id">Service ID</option>
+                            <option value="direction_id">Direction ID</option>
+                            <option value="bikes_allowed">Bikes Allowed</option>
+                            <option value="wheelchair_accessible">Wheelchair Accessible</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filterTripValue">value</label>
+                        <input type="text" class="form-control" id="filterTripValue" disabled>
+                    </div>
+                    <button id="load-trips" type="submit" class="btn btn-success">Load Trips</button>
+                </form>
+            </div>
+        </div>
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#panel4">
+                    <h3 class="panel-title">Stops</h3>
+                </a>
+            </div>
+            <div id="panel4" class="panel-collapse collapse">
+                <table id="stop-data" class="table table-striped table-hover">
+                    <thead>
+                      <tr>
+                        <th>Query ID</th>
+                        <th>Stop ID</th>
+                        <th>Agency ID</th>
+                        <th>Name</th>
+                        <th>Code</th>
+                        <th>Description</th>
+                        <th>Zone ID</th>
+                        <th>URL</th>
+                        <th>Location Type</th>
+                        <th>Timezone</th>
+                        <th>Parent Station</th>
+                        <th>Wheelchair Boarding</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <div class="panel-footer">
+                <form class="form-inline">
+                    <div class="form-group">
+                        <label for="filterStop">Filter</label>
+                        <input type="checkbox" class="form-control" id="filterStop">
+                    </div>
+                    <div class="form-group">
+                        <label for="filterStopAttribute">by attribute</label>
+                        <select id="filterStopAttribute" class="form-control" disabled>
+                            <option value="id">Query ID</option>
+                            <option value="stop_id">Stop ID</option>
+                            <option value="agency_id">Agency ID</option>
+                            <option value="stop_name">Name</option>
+                            <option value="stop_code">Code</option>
+                            <option value="zone_id">Zone ID</option>
+                            <option value="location_type">Location Type</option>
+                            <option value="parent_station">Parent Station</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filterStopValue">value</label>
+                        <input type="text" class="form-control" id="filterStopValue" disabled>
+                    </div>
+                    <button id="load-stops" type="submit" class="btn btn-success">Load Stops</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block additional_scripts %}
+ <script type="text/javascript" src="{{ url_for('static', filename='js/app.js') }}"></script>
+ {% endblock %}
